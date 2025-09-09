@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PixelStudio - Professional Image Processing</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .logo-text h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .logo-text p {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .new-image-btn {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .new-image-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .upload-zone {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 200px);
+            text-align: center;
+        }
+
+        .upload-header {
+            margin-bottom: 3rem;
+        }
+
+        .feature-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(59, 130, 246, 0.2));
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 50px;
+            font-size: 0.875rem;
+            color: #c084fc;
+            margin-bottom: 1.5rem;
+        }
+
+        .upload-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffffff, #e5e7eb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .upload-subtitle {
+            font-size: 1.125rem;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 600px;
+        }
+
+        .drop-zone {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            border: 2px dashed rgba(156, 163, 175, 0.5);
+            border-radius: 16px;
+            padding: 3rem 2rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .drop-zone:hover {
+            border-color: rgba(156, 163, 175, 0.8);
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .drop-zone.drag-over {
+            border-color: #8b5cf6;
+            background: rgba(139, 92, 246, 0.1);
+            transform: scale(1.02);
+        }
+
+        .drop-zone input {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .upload-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 24px;
+            transition: transform 0.3s ease;
+        }
+
+        .drop-zone:hover .upload-icon {
+            transform: scale(1.1);
+        }
+
+        .upload-text h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-text p {
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 1rem;
+        }
+
+        .upload-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+            max-width: 600px;
+        }
+
+        .feature-card {
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .feature-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.5rem;
+            font-size: 14px;
+        }
+
+        .feature-card:nth-child(1) .feature-icon {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+        }
+
+        .feature-card:nth-child(2) .feature-icon {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+        }
+
+        .feature-card:nth-child(3) .feature-icon {
+            background: rgba(139, 92, 246, 0.2);
+            color: #a78bfa;
+        }
+
+        .feature-card h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .feature-card p {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .editor-container {
+            display: none;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .control-panel {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 1.5rem;
+            position: sticky;
+            top: 120px;
+        }
+
+        .control-panel h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .control-section {
+            margin-bottom: 2rem;
+        }
+
+        .control-section h4 {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-control {
+            margin-bottom: 1rem;
+        }
+
+        .filter-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .filter-label span {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .filter-value {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-family: monospace;
+        }
+
+        .filter-slider {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+
+        .filter-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .filter-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .control-buttons {
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .control-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .control-btn.primary {
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+            color: white;
+        }
+
+        .control-btn.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .control-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .control-btn.primary:hover {
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);
+        }
+
+        .control-btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .canvas-container {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .canvas-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .image-info h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .image-info p {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .download-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+        }
+
+        .comparison-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .comparison-line {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 2px;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 10;
+            transform: translateX(-50%);
+        }
+
+        .comparison-label {
+            position: absolute;
+            top: 1rem;
+            padding: 0.25rem 0.5rem;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            font-size: 0.75rem;
+            border-radius: 4px;
+        }
+
+        .comparison-label.original {
+            left: 1rem;
+        }
+
+        .comparison-label.edited {
+            right: 1rem;
+        }
+
+        #imageCanvas, #originalCanvas {
+            max-width: 100%;
+            max-height: 600px;
+            border-radius: 8px;
+        }
+
+        .processing-indicator {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding: 0.75rem 1rem;
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 8px;
+            color: #c084fc;
+            font-size: 0.875rem;
+        }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(139, 92, 246, 0.3);
+            border-top: 2px solid #8b5cf6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 1rem;
+            }
+
+            .editor-container {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .control-panel {
+                position: static;
+                order: 2;
+            }
+
+            .upload-title {
+                font-size: 2rem;
+            }
+
+            .drop-zone {
+                padding: 2rem 1rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">📸</div>
+                <div class="logo-text">
+                    <h1>PixelStudio</h1>
+                    <p>Professional Image Processing</p>
+                </div>
+            </div>
+            <button class="new-image-btn" id="newImageBtn">
+                🔄 New Image
+            </button>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <div class="upload-zone" id="uploadZone">
+            <div class="upload-header">
+                <div class="feature-badge">
+                    ✨ AI-Powered Processing
+                </div>
+                <h2 class="upload-title">Transform Your Images</h2>
+                <p class="upload-subtitle">
+                    Professional image processing tools at your fingertips. Upload an image to get started.
+                </p>
+            </div>
+
+            <div class="drop-zone" id="dropZone">
+                <input type="file" accept="image/*" id="fileInput">
+                <div class="upload-icon">📤</div>
+                <div class="upload-text">
+                    <h3>Upload an image</h3>
+                    <p>Drag and drop or click to select • Supports JPG, PNG, WebP</p>
+                    <button class="upload-btn">
+                        📁 Choose File
+                    </button>
+                </div>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h4>Fast Processing</h4>
+                    <p>Instant results</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h4>No Upload</h4>
+                    <p>100% client-side</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <h4>Pro Tools</h4>
+                    <p>Advanced filters</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="editor-container" id="editorContainer">
+            <div class="control-panel">
+                <h3>Image Controls</h3>
+                
+                <div class="control-section">
+                    <h4>🌞 Basic Adjustments</h4>
+                    <div class="filter-control">
+                        <div class="filter-label">
+                            <span>Brightness</span>
+                            <span class="filter-value" id="brightnessValue">100%</span>
+                        </div>
+                        <input type="range" class="filter-slider" id="brightness" min="0" max="200" value="100">
+                    </div>
+                    <div class="filter-control">
+                        <div class="filter-label">
+                            <span>Contrast</span>
+                            <span class="filter-value" id="contrastValue">100%</span>
+                        </div>
+                        <input type="range" class="filter-slider" id="contrast" min="0" max="200" value="100">
+                    </div>
+                    <div class="filter-control">
+                        <div class="filter-label">
+                            <span>Saturation</span>
+                            <span class="filter-value" id="saturationValue">100%</span>
+                        </div>
+                        <input type="range" class="filter-slider" id="saturation" min="0" max="200" value="100">
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h4>🎨 Color & Effects</h4>
+                    <div class="filter-control">
+                        <div class="filter-label">
+                            <span>Hue Rotate</span>
+                            <span class="filter-value" id="hueRotateValue">0°</span>
+                        </div>
+                        <input type="range" class="filter-slider" id="hueRotate" min="0" max="360" value="0">
+                    </div>
+                    <div class="filter-control">
+                        <div class="filter-label">
+                            <span>Sepia</span>
+                            <span class="filter-value" id="sepiaValue">0%</span>
+                        </div>
+                        <input type="range" class="filter-slider" id="sepia" min="0" max="100" value="0">
+                    </div>
+                    <div class="filter-control">
+                        <div class="filter-label">
+                            <span>Blur</span>
+                            <span class="filter-value" id="blurValue">0px</span>
+                        </div>
+                        <input type="range" class="filter-slider" id="blur" min="0" max="10" step="0.1" value="0">
+                    </div>
+                </div>
+
+                <div class="control-buttons">
+                    <button class="control-btn primary" id="toggleComparison">
+                        👁️ Show Comparison
+                    </button>
+                    <button class="control-btn secondary" id="resetFilters">
+                        🔄 Reset Filters
+                    </button>
+                </div>
+            </div>
+
+            <div class="canvas-container">
+                <div class="canvas-header">
+                    <div class="image-info">
+                        <h3 id="imageName">Image</h3>
+                        <p id="imageDetails">Loading...</p>
+                    </div>
+                    <button class="download-btn" id="downloadBtn">
+                        💾 Download
+                    </button>
+                </div>
+
+                <div class="canvas-wrapper" id="canvasWrapper">
+                    <canvas id="imageCanvas"></canvas>
+                    <canvas id="originalCanvas" style="display: none;"></canvas>
+                </div>
+
+                <div class="processing-indicator" id="processingIndicator">
+                    <div class="spinner"></div>
+                    Processing...
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        class ImageProcessor {
+            constructor() {
+                this.currentImage = null;
+                this.showComparison = false;
+                this.filters = {
+                    brightness: 100,
+                    contrast: 100,
+                    saturation: 100,
+                    hueRotate: 0,
+                    sepia: 0,
+                    blur: 0
+                };
+                
+                this.initializeElements();
+                this.setupEventListeners();
+            }
+
+            initializeElements() {
+                this.uploadZone = document.getElementById('uploadZone');
+                this.editorContainer = document.getElementById('editorContainer');
+                this.dropZone = document.getElementById('dropZone');
+                this.fileInput = document.getElementById('fileInput');
+                this.newImageBtn = document.getElementById('newImageBtn');
+                this.canvas = document.getElementById('imageCanvas');
+                this.originalCanvas = document.getElementById('originalCanvas');
+                this.canvasWrapper = document.getElementById('canvasWrapper');
+                this.processingIndicator = document.getElementById('processingIndicator');
+                this.toggleComparisonBtn = document.getElementById('toggleComparison');
+                this.resetFiltersBtn = document.getElementById('resetFilters');
+                this.downloadBtn = document.getElementById('downloadBtn');
+                this.imageName = document.getElementById('imageName');
+                this.imageDetails = document.getElementById('imageDetails');
+
+                this.ctx = this.canvas.getContext('2d');
+                this.originalCtx = this.originalCanvas.getContext('2d');
+            }
+
+            setupEventListeners() {
+                // File upload
+                this.fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
+                this.dropZone.addEventListener('click', () => this.fileInput.click());
+                
+                // Drag and drop
+                this.dropZone.addEventListener('dragover', (e) => this.handleDragOver(e));
+                this.dropZone.addEventListener('dragleave', (e) => this.handleDragLeave(e));
+                this.dropZone.addEventListener('drop', (e) => this.handleDrop(e));
+
+                // Controls
+                this.newImageBtn.addEventListener('click', () => this.resetToUpload());
+                this.toggleComparisonBtn.addEventListener('click', () => this.toggleComparison());
+                this.resetFiltersBtn.addEventListener('click', () => this.resetFilters());
+                this.downloadBtn.addEventListener('click', () => this.downloadImage());
+
+                // Filter sliders
+                const sliders = ['brightness', 'contrast', 'saturation', 'hueRotate', 'sepia', 'blur'];
+                sliders.forEach(filter => {
+                    const slider = document.getElementById(filter);
+                    const valueDisplay = document.getElementById(filter + 'Value');
+                    
+                    slider.addEventListener('input', (e) => {
+                        const value = parseFloat(e.target.value);
+                        this.filters[filter] = value;
+                        
+                        let unit = '%';
+                        if (filter === 'hueRotate') unit = '°';
+                        if (filter === 'blur') unit = 'px';
+                        
+                        valueDisplay.textContent = value + unit;
+                        this.applyFilters();
+                    });
+                });
+            }
+
+            handleFileSelect(e) {
+                const file = e.target.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    this.loadImage(file);
+                }
+            }
+
+            handleDragOver(e) {
+                e.preventDefault();
+                this.dropZone.classList.add('drag-over');
+            }
+
+            handleDragLeave(e) {
+                e.preventDefault();
+                this.dropZone.classList.remove('drag-over');
+            }
+
+            handleDrop(e) {
+                e.preventDefault();
+                this.dropZone.classList.remove('drag-over');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0 && files[0].type.startsWith('image/')) {
+                    this.loadImage(files[0]);
+                }
+            }
+
+            loadImage(file) {
+                this.showProcessing(true);
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        this.currentImage = img;
+                        this.currentFile = file;
+                        this.setupCanvas(img);
+                        this.showEditor();
+                        this.updateImageInfo(file);
+                        this.applyFilters();
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+
+            setupCanvas(img) {
+                const maxWidth = 800;
+                const maxHeight = 600;
+                const ratio = Math.min(maxWidth / img.width, maxHeight / img.height);
+                
+                const width = img.width * ratio;
+                const height = img.height * ratio;
+
+                this.canvas.width = width;
+                this.canvas.height = height;
+                this.originalCanvas.width = width;
+                this.originalCanvas.height = height;
+
+                // Draw original image
+                this.originalCtx.drawImage(img, 0, 0, width, height);
+                this.ctx.drawImage(img, 0, 0, width, height);
+            }
+
+            applyFilters() {
+                if (!this.currentImage) return;
+
+                this.showProcessing(true);
+
+                // Use requestAnimationFrame for smooth updates
+                requestAnimationFrame(() => {
+                    const { brightness, contrast, saturation, hueRotate, sepia, blur } = this.filters;
+                    
+                    const filterString = `
+                        brightness(${brightness}%)
+                        contrast(${contrast}%)
+                        saturate(${saturation}%)
+                        hue-rotate(${hueRotate}deg)
+                        sepia(${sepia}%)
+                        blur(${blur}px)
+                    `.trim().replace(/\s+/g, ' ');
+
+                    // Clear and redraw with filters
+                    this.ctx.filter = filterString;
+                    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                    this.ctx.drawImage(this.originalCanvas, 0, 0);
+                    this.ctx.filter = 'none';
+
+                    this.showProcessing(false);
+                });
+            }
+
+            toggleComparison() {
+                this.showComparison = !this.showComparison;
+                
+                if (this.showComparison) {
+                    this.showComparisonView();
+                    this.toggleComparisonBtn.textContent = '👁️ Hide Comparison';
+                } else {
+                    this.hideComparisonView();
+                    this.toggleComparisonBtn.textContent = '👁️ Show Comparison';
+                }
+            }
+
+            showComparisonView() {
+                this.canvasWrapper.innerHTML = `
+                    <div class="comparison-wrapper">
+                        <canvas id="originalCanvasDisplay" style="clip-path: inset(0 50% 0 0);"></canvas>
+                        <canvas id="editedCanvasDisplay" style="position: absolute; top: 0; left: 0; clip-path: inset(0 0 0 50%);"></canvas>
+                        <div class="comparison-line"></div>
+                        <div class="comparison-label original">Original</div>
+                        <div class="comparison-label edited">Edited</div>
+                    </div>
+                `;
+
+                const originalDisplay = document.getElementById('originalCanvasDisplay');
+                const editedDisplay = document.getElementById('editedCanvasDisplay');
+                
+                originalDisplay.width = this.canvas.width;
+                originalDisplay.height = this.canvas.height;
+                editedDisplay.width = this.canvas.width;
+                editedDisplay.height = this.canvas.height;
+
+                const originalDisplayCtx = originalDisplay.getContext('2d');
+                const editedDisplayCtx = editedDisplay.getContext('2d');
+
+                originalDisplayCtx.drawImage(this.originalCanvas, 0, 0);
+                editedDisplayCtx.drawImage(this.canvas, 0, 0);
+            }
+
+            hideComparisonView() {
+                this.canvasWrapper.innerHTML = '<canvas id="imageCanvas"></canvas>';
+                this.canvas = document.getElementById('imageCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                
+                this.canvas.width = this.originalCanvas.width;
+                this.canvas.height = this.originalCanvas.height;
+                
+                this.applyFilters();
+            }
+
+            resetFilters() {
+                this.filters = {
+                    brightness: 100,
+                    contrast: 100,
+                    saturation: 100,
+                    hueRotate: 0,
+                    sepia: 0,
+                    blur: 0
+                };
+
+                // Update sliders and values
+                Object.keys(this.filters).forEach(filter => {
+                    const slider = document.getElementById(filter);
+                    const valueDisplay = document.getElementById(filter + 'Value');
+                    
+                    slider.value = this.filters[filter];
+                    
+                    let unit = '%';
+                    if (filter === 'hueRotate') unit = '°';
+                    if (filter === 'blur') unit = 'px';
+                    
+                    valueDisplay.textContent = this.filters[filter] + unit;
+                });
+
+                this.applyFilters();
+            }
+
+            downloadImage() {
+                if (!this.canvas) return;
+
+                try {
+                    const link = document.createElement('a');
+                    link.download = `processed-${this.currentFile.name}`;
+                    link.href = this.canvas.toDataURL('image/png');
+                    link.click();
+                } catch (error) {
+                    console.error('Error downloading image:', error);
+                    alert('Error downloading image. Please try again.');
+                }
+            }
+
+            showEditor() {
+                this.uploadZone.style.display = 'none';
+                this.editorContainer.style.display = 'grid';
+                this.newImageBtn.style.display = 'flex';
+            }
+
+            resetToUpload() {
+                this.uploadZone.style.display = 'flex';
+                this.editorContainer.style.display = 'none';
+                this.newImageBtn.style.display = 'none';
+                this.fileInput.value = '';
+                this.currentImage = null;
+                this.currentFile = null;
+                this.showComparison = false;
+                this.toggleComparisonBtn.textContent = '👁️ Show Comparison';
+                this.resetFilters();
+            }
+
+            updateImageInfo(file) {
+                this.imageName.textContent = file.name;
+                this.imageDetails.textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB • ${file.type}`;
+            }
+
+            showProcessing(show) {
+                this.processingIndicator.style.display = show ? 'flex' : 'none';
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            new ImageProcessor();
+        });
+    </script>
+</body>
+</html>
